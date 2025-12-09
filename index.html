@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inside the Software of F1 Steering Wheels</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        .hero {
+            height: 100vh;
+            background: linear-gradient(135deg, #e10600 0%, #15151e 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="2" cy="2" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 20px rgba(0,0,0,0.5);
+        }
+
+        .tagline {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .intro {
+            max-width: 700px;
+            font-size: 1.1rem;
+            margin: 0 auto 3rem;
+            opacity: 0.85;
+        }
+
+        .quick-links {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .quick-links a {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .quick-links a:hover {
+            background: rgba(225,6,0,0.8);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(225,6,0,0.3);
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            background: rgba(21,21,30,0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            z-index: 100;
+            border-bottom: 1px solid rgba(225,6,0,0.3);
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: #e0e0e0;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #e10600;
+        }
+
+        section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        section:nth-child(even) {
+            background: rgba(255,255,255,0.02);
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: #e10600;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        h2::before {
+            content: '';
+            width: 4px;
+            height: 40px;
+            background: linear-gradient(to bottom, #e10600, transparent);
+        }
+
+        h3 {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem;
+            color: #00d9ff;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.05);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #e10600;
+            box-shadow: 0 10px 30px rgba(225,6,0,0.2);
+        }
+
+        .card h4 {
+            color: #00d9ff;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        ul.feature-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        ul.feature-list li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        ul.feature-list li::before {
+            content: '▸';
+            color: #e10600;
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(225,6,0,0.1), rgba(0,217,255,0.1));
+            padding: 2rem;
+            border-radius: 12px;
+            border-left: 4px solid #e10600;
+            margin: 2rem 0;
+        }
+
+        footer {
+            background: #15151e;
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(225,6,0,0.3);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .tagline {
+                font-size: 1.1rem;
+            }
+            
+            nav ul {
+                gap: 1rem;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="hero-content">
+            <h1>Inside the Software of F1 Steering Wheels</h1>
+            <p class="tagline">Where Engineering Meets Precision: The Software Behind F1 Steering Wheels</p>
+            <p class="intro">
+                Explore the cutting-edge technology that powers Formula 1 steering wheels—from embedded systems 
+                and real-time telemetry to driver controls and AI-assisted strategies.
+            </p>
+            <div class="quick-links">
+                <a href="#telemetry">Telemetry</a>
+                <a href="#controls">Control Systems</a>
+                <a href="#hmi">UI/UX</a>
+                <a href="#architecture">Architecture</a>
+            </div>
+        </div>
+    </div>
+
+    <nav>
+        <ul>
+            <li><a href="#about">About</a></li>
+            <li><a href="#architecture">Architecture</a></li>
+            <li><a href="#telemetry">Telemetry</a></li>
+            <li><a href="#controls">Controls</a></li>
+            <li><a href="#hmi">HMI</a></li>
+            <li><a href="#data">Data & Analysis</a></li>
+            <li><a href="#security">Security</a></li>
+            <li><a href="#future">Future</a></li>
+        </ul>
+    </nav>
+
+    <section id="about">
+        <h2>About F1 Steering Wheels</h2>
+        
+        <h3>Evolution of the Steering Wheel</h3>
+        <p>Formula 1 steering wheels have transformed from simple mechanical devices to sophisticated digital command centers. Modern F1 wheels feature embedded software, multi-function displays, and dozens of programmable controls—enabling drivers to adjust car parameters in real-time while traveling at speeds exceeding 350 km/h.</p><br>
+        
+        <img src="https://www.motortrend.com/uploads/sites/21/2021/08/015-ringbrothers-splitter-steering-wheel.jpg?interpolation=lanczos-none&fit=around|660:371?w=768&width=768&q=75&format=webp" width="500" height="300" alt="Steering Wheel"><br>
+        <div class="grid">
+            <div class="card">
+                <h4>From Mechanical to Digital</h4>
+                <p>Early F1 cars used basic steering mechanisms. Today's wheels integrate advanced microprocessors and real-time operating systems.</p>
+            </div>
+            <div class="card">
+                <h4>Embedded Software Revolution</h4>
+                <p>Introduction of programmable firmware enabled dynamic car adjustments, telemetry integration, and complex control logic.</p>
+            </div>
+            <div class="card">
+                <h4>Increasing Complexity</h4>
+                <p>Modern wheels feature 20+ buttons, rotary switches, and displays—all managed by sophisticated software layers.</p>
+            </div>
+        </div>
+
+        <h3>What Makes F1 Steering Wheels Unique</h3>
+        <div class="highlight-box">
+            <ul class="feature-list">
+                <li><strong>Multi-function displays:</strong> High-resolution screens showing critical telemetry, lap times, and system status</li>
+                <li><strong>Programmable controls:</strong> Toggles and rotary knobs mapped to hundreds of car parameters</li>
+                <li><strong>Real-time data interfaces:</strong> Instant communication with car systems and pit wall</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="architecture">
+        <h2>Embedded Software Architecture</h2>
+
+        <h3>Core Components</h3>
+        <div class="grid">
+            <div class="card">
+                <h4>Microcontroller Units (MCUs)</h4>
+                <p>High-performance processors running control algorithms at microsecond precision, managing all steering wheel functions.</p>
+            </div>
+            <div class="card">
+                <h4>Real-Time Operating Systems</h4>
+                <p>RTOS ensures deterministic response times for critical operations like brake bias adjustments and ERS deployment.</p>
+            </div>
+            <div class="card">
+                <h4>CAN Bus Communication</h4>
+                <p>Controller Area Network enables reliable, high-speed data exchange between steering wheel and car systems.</p>
+            </div>
+            <div class="card">
+                <h4>FPGA Integration</h4>
+                <p>Field-programmable gate arrays handle time-critical signal processing and parallel data operations.</p>
+            </div>
+        </div>
+
+        <h3>Software Layers</h3>
+        <ul class="feature-list">
+            <li><strong>Low-level firmware:</strong> Direct hardware control and interrupt handling</li>
+            <li><strong>Control algorithms:</strong> Logic for parameter adjustments, mode switching, and driver inputs</li>
+            <li><strong>Data integration layer:</strong> Aggregates sensor data, telemetry streams, and system status</li>
+            <li><strong>UI/UX rendering layer:</strong> Manages display output, LED indicators, and visual feedback</li>
+        </ul>
+
+        <div class="highlight-box">
+            <h4>Safety & Redundancy</h4>
+            <p>Fail-safe programming and error detection systems ensure that critical functions remain operational even during component failures. Redundant pathways and continuous self-diagnostics protect driver safety.</p>
+        </div>
+    </section>
+
+    <section id="telemetry">
+        <h2>Telemetry Systems</h2>
+
+        <h3>Real-Time Data Transmission</h3>
+        <p>Telemetry systems continuously transmit car data to the pit wall while receiving strategy updates and alerts. This bidirectional communication happens at millisecond intervals during races.</p>
+
+        <div class="grid">
+            <div class="card">
+                <h4>Packet Compression</h4>
+                <p>Advanced algorithms compress sensor data for efficient transmission over limited bandwidth RF links.</p>
+            </div>
+            <div class="card">
+                <h4>Data Prioritization</h4>
+                <p>Critical parameters (tire temps, fuel levels, system failures) receive transmission priority over less urgent data.</p>
+            </div>
+            <div class="card">
+                <h4>Communication Protocols</h4>
+                <p>Combines CAN bus for internal systems, Ethernet for high-bandwidth data, and RF links for wireless transmission.</p>
+            </div>
+        </div>
+
+        <h3>Team Integration</h3>
+        <p>Race engineers analyze incoming telemetry streams to provide real-time strategy recommendations. The steering wheel software formats and displays these messages for instant driver comprehension.</p>
+    </section>
+
+    <section id="controls">
+        <h2>Driver Controls & Software Logic</h2>
+
+        <h3>Adjustable Parameters</h3>
+        <div class="grid">
+            <div class="card">
+                <h4>Differential Settings</h4>
+                <p>Fine-tune power distribution between rear wheels for optimal cornering performance.</p>
+            </div>
+            <div class="card">
+                <h4>Brake Bias</h4>
+                <p>Adjust front-rear brake force distribution corner-by-corner for maximum stopping power.</p>
+            </div>
+            <div class="card">
+                <h4>ERS Deployment</h4>
+                <p>Manage hybrid power unit energy recovery and deployment strategies.</p>
+            </div>
+            <div class="card">
+                <h4>Engine Mapping</h4>
+                <p>Switch between power modes for qualifying, race pace, and overtaking scenarios.</p>
+            </div>
+            <div>
+                <img src="https://m.media-amazon.com/images/I/814JbHTnvOL._AC_UF1000,1000_QL80_.jpg" width="500" height="300" alt="Steering Wheel">   
+            </div>
+        </div>
+
+        <h3>Input Processing & Algorithmic Logic</h3>
+        <div class="highlight-box">
+            <ul class="feature-list">
+                <li><strong>Button debouncing:</strong> Software filters eliminate false triggers from mechanical switch bounce</li>
+                <li><strong>Sensor validation:</strong> Cross-checks multiple inputs to ensure data integrity</li>
+                <li><strong>Multi-function mapping:</strong> Single controls perform different actions based on context and mode</li>
+                <li><strong>Predictive control:</strong> Algorithms anticipate driver needs based on track position and race conditions</li>
+                <li><strong>Mode-switch logic:</strong> Complex decision trees manage transitions between car settings</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="hmi">
+        <h2>Human-Machine Interface Design</h2>
+
+        <h3>Display UI/UX</h3>
+        <p>The steering wheel display must communicate critical information instantly while minimizing driver distraction. Software manages layout, prioritizes alerts, and uses color-coding for rapid comprehension.</p>
+
+        <div class="grid">
+            <div class="card">
+                <h4>Information Hierarchy</h4>
+                <p>Most critical data (gear, RPM, warnings) positioned centrally. Secondary info accessible via quick glance.</p>
+            </div>
+            <div class="card">
+                <h4>Alert Prioritization</h4>
+                <p>Softwimage.pngare determines which warnings demand immediate attention versus background monitoring.</p>
+            </div>
+            <div class="card">
+                <h4>Visibility Optimization</h4>
+                <p>High-contrast colors, large fonts, and adaptive brightness ensure readability in all conditions.</p>
+            </div>
+        </div>
+
+        <h3>Menu Navigation & LED Integration</h3>
+        <ul class="feature-list">
+            <li><strong>Multi-layer menus:</strong> Hierarchical structure allows access to hundreds of settings without cluttering the display</li>
+            <li><strong>Quick-action presets:</strong> One-button access to frequently used configurations</li>
+            <li><strong>RPM LEDs:</strong> Progressive shift lights indicate optimal gear change timing</li>
+            <li><strong>Flag indicators:</strong> LEDs communicate yellow flags, blue flags, and track condition changes</li>
+            <li><strong>Gear shift prompts:</strong> Visual cues optimize shift timing for maximum acceleration</li>
+        </ul>
+    </section>
+
+    <section id="data">
+        <h2>Data Logging & Analysis</h2>
+
+        <h3>Onboard Data Storage</h3>
+        <p>The steering wheel image.png logs thousands of parameters at sampling frequencies up to 1000 Hz. This creates massive datasets that capture every aspect of car and driver performance.</p>
+
+        <div class="highlight-box">
+            <h4>Post-Race Analysis</h4>
+            <ul class="feature-list">
+                <li><strong>Driver performance metrics:</strong> Analyze braking points, throttle application, and steering inputs</li>
+                <li><strong>Car behavior analysis:</strong> Study aerodynamic balance, tire degradation, and system efficiency</li>
+                <li><strong>Event tracing:</strong> Reconstruct incidents and investigate anomalies</li>
+            </ul>
+        </div>
+
+        <h3>Machine Learning Integration</h3>
+        <div class="grid">
+            <div class="card">
+                <h4>Predictive Modeling</h4>
+                <p>ML algorithms forecast tire wear, fuel consumption, and optimal pit stop timing based on historical data.</p>
+            </div>
+            <div class="card">
+                <h4>Anomaly Detection</h4>
+                <p>AI systems identify unusual patterns that may indicate impending failures or performance degradation.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="security">
+        <h2>Security & Compliance</h2>
+
+        <h3>FIA Regulations</h3>
+        <p>Formula 1's governing body strictly regulates steering wheel image.png to ensure fair competition and driver safety. Teams must comply with encryption requirements and software constraints.</p>
+
+        <div class="grid">
+            <div class="card">
+                <h4>Software Constraints</h4>
+                <p>Limited driver aids, no automated driving functions, restrictions on data processing capabilities.</p>
+            </div>
+            <div class="card">
+                <h4>Anti-Tamper Systems</h4>
+                <p>Secure bootloaders and authentication protocols prevent unauthorized software modifications.</p>
+            </div>
+            <div class="card">
+                <h4>Data Privacy & Access Control</h4>
+                <p>Encrypted communications protect proprietary data from competitors and unauthorized access.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="development">
+        <h2>Development & Testing</h2>
+
+        <h3>Software Development Workflow</h3>
+        <ul class="feature-list">
+            <li><strong>Simulation environments:</strong> Virtual testing validates software before deployment</li>
+            <li><strong>Hardware-in-the-loop (HIL):</strong> Real steering wheel hardware tested with simulated car systems</li>
+            <li><strong>Live patching:</strong> Within FIA regulations, teams can adjust calibrations during race weekends</li>
+            <li><strong>Calibration tweaks:</strong> Fine-tune control algorithms based on track-specific requirements</li>
+        </ul><br>
+
+        <div><br>
+            <img src="https://www.motortrend.com/uploads/sites/21/2021/08/015-ringbrothers-splitter-steering-wheel.jpg?interpolation=lanczos-none&fit=around|660:371?w=768&width=768&q=75&format=webp" width="500" height="300" alt="Steering Wheel">
+        </div>
+
+        <h3>Team Collaboration</h3>
+        <p>Steering wheel software development requires close coordination between drivers (who provide feedback on usability), race engineers (who specify required functionality), and programmers (who implement and optimize the code).</p>
+    </section>
+
+    <section id="future">
+        <h2>Our Own Steering Wheel</h2>
+        <div class="grid">
+            <ul class="feature-list">
+                <ul class="feature-list">
+                    <li>1. Main Display: Show Speed</li>
+                    <li>2. Main buttons</li>
+                    <li>3. Gear transmission</li>
+                    <li>4. Turbine fan speed leds</li>
+                    <li>5. Emergency buttons</li>
+                    <li>6. Cabin control</li>
+                </ul>
+            </ul>
+            <div class="card1">
+                <img src="immage.png" width="500" height="700" alt="Steering Wheel">
+            </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Inside the Software of F1 Steering Wheels | Educational Resource</p>
+        <p>Exploring the intersection of software engineering and motorsport</p>
+    </footer>
+</body>
+</html>
